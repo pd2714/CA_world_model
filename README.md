@@ -1,128 +1,79 @@
 # CA World Model
 
-Research codebase for testing whether learned world models can discover effective dynamical variables in cellular automata.
+Research codebase for studying whether learned world models can discover effective dynamical variables in cellular automata.
 
-The central question in this repo is not only whether a model can do next-step prediction, but whether it can learn a latent state that is:
+The main question here is not just whether a model can predict the next frame, but whether it can learn a latent state that is:
 
 - compressed,
 - approximately closed under time evolution,
-- useful for long-horizon prediction,
+- useful for long-horizon rollout,
 - and at least partly interpretable through observables or moving structures.
 
-This repository is built to compare four viewpoints on CA dynamics:
+This repository is built around four complementary views of CA dynamics:
 
 - `exact rule rollout`: the ground-truth simulator.
-- `pixel predictor`: a direct `x_t -> x_{t+1}` predictor in state space.
+- `pixel predictor`: a direct `x_t -> x_{t+1}` predictor in observation space.
 - `dense world model`: an encoder `E`, latent dynamics `F`, and decoder `D`.
-- `object world model`: a simple slot/particle-style latent model for 1D CA.
+- `object world model`: a lightweight slot-style latent model for 1D CA.
 
-## Implemented
+## Recent Update
 
-- Fully working 1D elementary CA pipeline with Rules 184, 54, 110, and 30.
-- Lightweight 2D Life-like CA support with Conway's Life (`B3/S23`) by default.
-- Dataset generation for train/val/test trajectories with metadata and simple OOD density shifts.
-- Pixel baseline, dense latent model, and modest slot-based 1D object model.
-- Config-driven training, evaluation, rollout comparison, latent visualization, and probe analysis.
-- Analysis tools for:
+Update on April 13, 2026:
+
+- The dense latent transition now exposes more explicit dynamics controls, including configurable kernel size, residual step size `alpha`, optional local channel normalization, final-layer initialization scaling, and delta clamping.
+- The spatial latent dynamics code now supports per-position channel normalization with either local layer normalization or RMS-style normalization for both 1D and 2D models.
+- The repo includes a paired baseline-vs-CA-biased comparison runner for summarizing how architectural inductive bias affects one-step accuracy, rollout quality, and closure metrics across multiple 1D rules.
+- The README now documents the repo as a full workflow rather than just a loose collection of scripts.
+
+## What Is Implemented
+
+- Fully working 1D elementary CA pipeline with Rules 30, 54, 110, and 184.
+- Lightweight 2D Life-like CA support with Conway's Life (`B3/S23`) as the default example.
+- Config-driven generation of train, validation, and test trajectories.
+- Pixel baseline, dense latent world model, and a modest slot-based 1D object model.
+- Training, evaluation, latent visualization, rollout comparison, and probe analysis scripts.
+- Tools for studying:
   - long-horizon rollout error,
-  - Hamming distance vs horizon,
+  - Hamming distance versus horizon,
   - density and domain-wall observable error,
   - latent closure error,
   - linear probes from latent states to observables,
-  - event-focused handcrafted seeds for Rules 54 and 110.
+  - event-focused or hand-crafted seeds for structured rules such as 54 and 110.
 
-## What "Effective Dynamics" Means Here
+## Research Framing
 
-The dense and object-centric models try to learn latent variables that behave like effective dynamical variables. In practice, this repo lets you ask:
+The working hypothesis is that some CA admit a more stable or structured latent representation than raw cell space suggests. This repo lets us test questions like:
 
-- Is the latent state smaller or more structured than pixels?
-- Can latent rollouts stay predictive for longer than direct pixel rollouts?
-- Is the latent approximately closed, meaning `F^tau(E(x_t))` matches `E(x_{t+tau})`?
-- Do simple probes recover observables like density or domain-wall density from the latent?
-- For structured rules like 54 or 110, does the model appear to track moving localized patterns?
+- Can a learned latent rollout stay accurate longer than a direct pixel-space rollout?
+- Is the latent approximately closed, meaning `F^tau(E(x_t))` stays near `E(x_{t+tau})`?
+- Do simple probes recover meaningful observables such as density or domain-wall density?
+- For structured rules like 54 and 110, does the latent appear to track localized moving patterns rather than only memorizing the next frame?
+- How much do architectural biases in the latent dynamics help on hard long-horizon rules?
 
-## Quickstart
+Rule 184 is usually the easiest place to start, Rule 54 introduces richer moving structures, Rule 110 is the hardest structured rule in this repo, and Rule 30 is useful as a more chaotic stress test.
 
-Install:
+## Installation
+
+The project targets Python 3.10+.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+pip install -e .
 ```
 
-Generate data:
+Core dependencies include PyTorch, NumPy, SciPy, pandas, matplotlib, scikit-learn, PyYAML, and Jupyter.
 
-```bash
-python -m src.scripts.generate_data --config configs/experiment/rule184_dense.yaml
-python -m src.scripts.generate_data --config configs/experiment/rule54_pixel.yaml
-```
-
-Visualize exact CA:
-
-```bash
-python -m src.scripts.visualize_ca --config configs/experiment/rule54_dense.yaml --output_dir outputs/rule54_exact
-```
-
-Train:
-
-```bash
-python -m src.scripts.train --config configs/experiment/rule184_dense.yaml
-python -m src.scripts.train --config configs/experiment/rule54_pixel.yaml
-```
-
-Evaluate:
-
-```bash
-python -m src.scripts.evaluate --checkpoint outputs/<run_dir>/best.ckpt --config configs/experiment/rule184_dense.yaml
-python -m src.scripts.evaluate --checkpoint outputs/<run_dir>/best.ckpt --config configs/experiment/rule54_pixel.yaml
-```
-
-Compare rollout to exact rule:
-
-```bash
-python -m src.scripts.compare_to_rule --checkpoint outputs/<run_dir>/best.ckpt --config configs/experiment/rule184_dense.yaml
-```
-
-Latent visualization and probes:
-
-```bash
-python -m src.scripts.visualize_latent --checkpoint outputs/<run_dir>/best.ckpt --config configs/experiment/rule184_dense.yaml
-python -m src.scripts.run_probe_analysis --checkpoint outputs/<run_dir>/best.ckpt --config configs/experiment/rule184_dense.yaml
-```
-
-Plot saved evaluation metrics:
-
-```bash
-python -m src.scripts.plot_results --run_dir outputs/<run_dir>
-```
-
-## Recommended First Experiment Sequence
-
-1. Generate `rule184_dense` data.
-2. Train the dense latent model on Rule 184.
-3. Evaluate and inspect rollout error vs horizon.
-4. Run `compare_to_rule` on a held-out sample.
-5. Run latent visualization and probe analysis.
-6. Repeat with `rule54_pixel` and compare pixel-space vs latent-space long-horizon behavior.
-7. Move to `rule54_dense`, then `rule110_dense`, then optionally `rule54_object`.
-
-## Example Output Paths
-
-After a typical training run in `outputs/<run_dir>/`, you can expect files such as:
-
-- `outputs/<run_dir>/best.ckpt`
-- `outputs/<run_dir>/eval/rollout_metrics.csv`
-- `outputs/<run_dir>/eval/hamming_vs_horizon.png`
-- `outputs/<run_dir>/compare/compare_sample_0.png`
-- `outputs/<run_dir>/latent_viz/latent_pca.png`
-- `outputs/<run_dir>/probe/probe_metrics.csv`
-
-## Repo Structure
+## Repository Layout
 
 ```text
-ca_world_model/
+CA_world_model/
   configs/
+    data/
+    experiment/
+    model/
+    train/
   data/
   notebooks/
   outputs/
@@ -141,60 +92,191 @@ ca_world_model/
 
 - `src/ca/elementary_1d.py`: Wolfram elementary CA with periodic boundaries.
 - `src/ca/life_like_2d.py`: Life-like 2D CA with `B/S` rule parsing.
-- `src/ca/trajectory.py`: rollout generation and initial condition samplers.
+- `src/ca/trajectory.py`: rollout generation and initial-condition sampling.
 - `src/ca/observables.py`: density, domain walls, and simple event signals.
-- `src/ca/visualization.py`: exact/predicted trajectory plots and 2D GIFs.
+- `src/ca/visualization.py`: exact and predicted trajectory plots plus 2D GIF helpers.
 
 ### Models
 
-- `pixel predictor`: direct convolutional next-step baseline.
-- `dense world model`: `E`, `F`, `D` with spatial or vector latent options.
-- `object world model`: simple slot pooling, slot dynamics, and broadcast decode for 1D.
+- `pixel predictor`: direct convolutional next-step baseline in state space.
+- `dense world model`: encoder, latent transition, and decoder with spatial or vector latent options.
+- `object world model`: simple slot pooling, slot dynamics, and broadcast decoding for 1D experiments.
 
-### Analysis
+### Training and evaluation
 
-- rollout error curves,
-- exact vs predicted trajectory plots,
-- latent PCA and t-SNE,
-- closure analysis,
-- linear probes to observables,
-- event-focused seeds for structured 1D rules.
+- `src/scripts/generate_data.py`: generate train, val, and test splits from a config.
+- `src/scripts/train.py`: train a model and emit a comparison image for the first test sample.
+- `src/scripts/evaluate.py`: compute one-step and rollout metrics from a checkpoint.
+- `src/scripts/compare_to_rule.py`: compare exact CA evolution against a trained model rollout.
+- `src/scripts/visualize_latent.py`: inspect learned latent geometry.
+- `src/scripts/run_probe_analysis.py`: fit simple probes from latent states to observables.
+- `src/scripts/plot_results.py`: plot saved metrics from a run directory.
+- `src/scripts/run_ca_biased_comparison.py`: run paired baseline and CA-biased sweeps and aggregate metrics across rules.
 
-## Implemented Now vs Future Work
+## Data and Outputs
+
+The repository intentionally does not track generated datasets, most experiment outputs, or the separate Overleaf/LaTeX workspace.
+
+- `data/*.npz`, `data/*.csv`, `data/*.json`, and `data/*.pt` are ignored.
+- `outputs/*` is ignored except for `outputs/.gitkeep`.
+- The nested Overleaf repository folder is excluded from Git.
+
+That means a fresh clone gives you the code and configs, but you will need to generate data locally before training.
+
+## End-to-End Workflow
+
+### 1. Generate data
+
+```bash
+python -m src.scripts.generate_data --config configs/experiment/rule184_dense.yaml
+python -m src.scripts.generate_data --config configs/experiment/rule54_pixel.yaml
+```
+
+This creates split files such as:
+
+- `data/rule184_dense_train.npz`
+- `data/rule184_dense_val.npz`
+- `data/rule184_dense_test.npz`
+
+### 2. Train a model
+
+```bash
+python -m src.scripts.train --config configs/experiment/rule184_dense.yaml
+python -m src.scripts.train --config configs/experiment/rule54_pixel.yaml
+```
+
+By default, training writes a timestamped run directory under `outputs/`, for example:
+
+- `outputs/rule184_dense_20260413_123456/`
+
+Typical artifacts include:
+
+- `best.ckpt`
+- `last.ckpt`
+- `metrics.csv`
+- `compare/compare_sample_0.png`
+
+### 3. Evaluate a checkpoint
+
+```bash
+python -m src.scripts.evaluate \
+  --checkpoint outputs/<run_dir>/best.ckpt \
+  --config configs/experiment/rule184_dense.yaml
+```
+
+Useful evaluation flags:
+
+- `--horizon`: rollout horizon for multi-step evaluation.
+- `--feedback_mode hard|soft`: choose thresholded or soft feedback during evaluation.
+- `--rollout_mode latent|reencode`: roll out directly in latent space or re-encode after each predicted frame.
+
+Expected evaluation outputs include:
+
+- `eval/one_step_metrics.csv`
+- `eval/rollout_metrics.csv`
+- `eval/hamming_vs_horizon.png`
+
+### 4. Compare against exact rule evolution
+
+```bash
+python -m src.scripts.compare_to_rule \
+  --checkpoint outputs/<run_dir>/best.ckpt \
+  --config configs/experiment/rule184_dense.yaml
+```
+
+### 5. Inspect latent structure
+
+```bash
+python -m src.scripts.visualize_latent \
+  --checkpoint outputs/<run_dir>/best.ckpt \
+  --config configs/experiment/rule184_dense.yaml
+
+python -m src.scripts.run_probe_analysis \
+  --checkpoint outputs/<run_dir>/best.ckpt \
+  --config configs/experiment/rule184_dense.yaml
+```
+
+### 6. Plot saved metrics
+
+```bash
+python -m src.scripts.plot_results --run_dir outputs/<run_dir>
+```
+
+## Recommended Starting Path
+
+For a first pass through the project:
+
+1. Generate data for `rule184_dense`.
+2. Train the dense world model on Rule 184.
+3. Run evaluation and inspect Hamming distance versus rollout horizon.
+4. Use `compare_to_rule` to inspect a concrete held-out trajectory.
+5. Run latent visualization and probe analysis.
+6. Compare the same rule or a harder rule against the pixel baseline.
+7. Move on to `rule54_dense`, then `rule110_best_long`, and then the CA-biased comparison sweep.
+
+## Notable Experiment Families
+
+- `rule184_dense`, `rule54_dense`, `rule110_dense`, `rule30_dense`: core dense latent baselines.
+- `rule54_pixel`: direct pixel-space baseline.
+- `rule54_object`: lightweight object-centric baseline.
+- `*_best_long`: stronger long-horizon baseline configs for 1D rules.
+- `*_ca_biased_small`: smaller CA-biased latent dynamics variants for paired comparison.
+- `rule110_focus_*`: structured Rule 110 runs that emphasize specific event or defect regimes.
+- `rule184_latent_rollout_*` and similar configs: targeted rollout and closure experiments.
+
+## Dense Dynamics Notes
+
+The dense world model is the main research baseline in this repo. It supports:
+
+- spatial or vector latents,
+- configurable latent dynamics depth,
+- configurable dynamics kernel size,
+- residual latent update scale through `dynamics_alpha`,
+- optional local channel normalization through `dynamics_norm_type`,
+- scaled final transition initialization through `dynamics_init_scale`,
+- and optional delta clipping through `dynamics_clamp_delta`.
+
+The newer CA-biased small configs use a shallower, more constrained latent transition with stronger inductive bias and a smaller initialization scale. Those runs are intended for controlled comparisons against the more standard dense baseline.
+
+## Comparison Sweep
+
+To compare baseline and CA-biased models across multiple 1D rules:
+
+```bash
+python -m src.scripts.run_ca_biased_comparison \
+  --output_root outputs/ca_biased_comparison \
+  --device cpu
+```
+
+This script trains paired runs, saves per-run evaluation files, and writes:
+
+- `outputs/ca_biased_comparison/summary.csv`
+- `outputs/ca_biased_comparison/paired_summary.csv`
+
+The paired summary reports deltas for metrics such as one-step BCE, one-step accuracy, final rollout Hamming error, density error, shift-aligned Hamming error, and closure metrics.
+
+## Caveats and Pitfalls
+
+- Rule 110 is substantially harder than Rule 184 or Rule 54. Short-horizon accuracy can still hide long-horizon structural drift.
+- Rule 30 can remain closure-poor even when one-step prediction looks decent. That is often scientifically informative rather than just a modeling failure.
+- Pixel rollouts can degrade rapidly because thresholding errors compound over time.
+- The object model is a pragmatic baseline, not a full slot-attention research stack.
+- The 2D pipeline is lighter-weight than the 1D pipeline and is meant more for exploratory experiments than polished large-scale benchmarks.
+
+## Current Scope
 
 Implemented now:
 
-- Strong 1D research pipeline.
-- Dense latent model as the main effective-theory baseline.
-- Pixel baseline and basic object-centric 1D baseline.
-- Config-driven scripts, plots, metrics, checkpoints, and notebooks.
-- Lightweight 2D Life support.
+- strong 1D experimentation pipeline,
+- dense latent model as the primary effective-theory baseline,
+- pixel baseline and modest object-centric 1D baseline,
+- config-driven runs, plots, metrics, checkpoints, and notebooks,
+- lightweight 2D Life-like support.
 
-Future work:
+Natural next steps:
 
-- richer OOD suites across system size and seed families,
-- more stable slot attention and better object discovery,
-- explicit collision/event metrics,
-- UMAP and richer clustering tools,
-- larger-scale 2D experiments,
-- more interpretable defect tracking for Rules 54 and 110.
-
-## Likely Pitfalls
-
-- Rule 110 is harder than Rule 184 or Rule 54: local prediction can look good while long-horizon structure drifts quickly.
-- Object-centric training is intentionally modest here; slot collapse or diffuse slot usage can happen without careful tuning.
-- Pixel rollouts often accumulate thresholding errors rapidly, so short-horizon metrics can be misleading.
-- Closure metrics for chaotic rules like Rule 30 may stay poor even when one-step prediction is decent, which is scientifically informative rather than just a modeling failure.
-
-## Notes on the Models
-
-- `pixel predictor`: directly predicts cells in pixel/state space.
-- `dense world model`: encodes to latent state, evolves latent state, decodes back to pixels.
-- `object world model`: approximates a structured latent with a small set of slots/particles.
-- `exact rule rollout`: the simulator baseline and ground truth.
-
-## Caveats
-
-- The 1D pipeline is the most mature part of the repo.
-- The object model is a pragmatic baseline, not a full slot-attention research implementation.
-- The 2D path is intentionally lighter so laptop experiments remain feasible.
+- richer OOD suites across size, density, and seed families,
+- more explicit defect or collision metrics,
+- stronger object-centric training and stability,
+- larger 2D experiments,
+- and richer interpretability tools for Rule 54 and Rule 110 structures.

@@ -4,6 +4,11 @@ model:
   latent_channels: 32
   latent_dim: 64
   depth: 3
+  dynamics_depth: 3
+  dynamics_kernel_size: 3
+  dynamics_alpha: 1.0
+  dynamics_norm_type: none
+  dynamics_init_scale: 1.0
   dynamics_step_size: 1.0
   dynamics_use_post_norm: false
   dynamics_clamp_delta: 0.0
@@ -16,3 +21,5 @@ losses:
   latent_l2_weight: 1.0e-4
   latent_cycle_weight: 0.0
   latent_step_weight: 0.0
+  latent_discretization_weight: 0.0
+  latent_discretization_target: 1.0

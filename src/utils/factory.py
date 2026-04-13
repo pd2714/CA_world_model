@@ -68,6 +68,12 @@ def build_model(config: dict[str, Any]) -> torch.nn.Module:
             kernel_size=int(model_cfg.get("kernel_size", 3)),
         )
     if name == "dense_world_model":
+        dynamics_norm_type = str(
+            model_cfg.get(
+                "dynamics_norm_type",
+                "layer" if bool(model_cfg.get("dynamics_use_post_norm", False)) else "none",
+            )
+        )
         return DenseWorldModel(
             dimension=config["ca"]["dimension"],
             latent_type=str(model_cfg.get("latent_type", "spatial")),
@@ -75,6 +81,11 @@ def build_model(config: dict[str, Any]) -> torch.nn.Module:
             latent_dim=int(model_cfg.get("latent_dim", 64)),
             input_size=config["ca"]["size"],
             depth=int(model_cfg.get("depth", 3)),
+            dynamics_depth=int(model_cfg.get("dynamics_depth", model_cfg.get("depth", 3))),
+            dynamics_kernel_size=int(model_cfg.get("dynamics_kernel_size", 3)),
+            dynamics_alpha=float(model_cfg.get("dynamics_alpha", model_cfg.get("dynamics_step_size", 1.0))),
+            dynamics_norm_type=dynamics_norm_type,
+            dynamics_init_scale=float(model_cfg.get("dynamics_init_scale", 1.0)),
             dynamics_step_size=float(model_cfg.get("dynamics_step_size", 1.0)),
             dynamics_use_post_norm=bool(model_cfg.get("dynamics_use_post_norm", False)),
             dynamics_clamp_delta=float(model_cfg.get("dynamics_clamp_delta", 0.0)),

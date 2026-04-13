@@ -31,6 +31,11 @@ class DenseWorldModel(nn.Module):
         latent_dim: int = 64,
         input_size: int | tuple[int, int] = 128,
         depth: int = 3,
+        dynamics_depth: int | None = None,
+        dynamics_kernel_size: int = 3,
+        dynamics_alpha: float = 1.0,
+        dynamics_norm_type: str = "none",
+        dynamics_init_scale: float = 1.0,
         dynamics_step_size: float = 1.0,
         dynamics_use_post_norm: bool = False,
         dynamics_clamp_delta: float = 0.0,
@@ -38,12 +43,17 @@ class DenseWorldModel(nn.Module):
         super().__init__()
         self.dimension = dimension
         self.latent_type = latent_type
+        effective_dynamics_depth = int(dynamics_depth if dynamics_depth is not None else depth)
 
         if dimension == "1d" and latent_type == "spatial":
             self.encoder = ConvEncoder1D(latent_channels=latent_channels, depth=depth)
             self.dynamics = SpatialLatentDynamics1D(
                 channels=latent_channels,
-                depth=depth,
+                depth=effective_dynamics_depth,
+                kernel_size=dynamics_kernel_size,
+                alpha=dynamics_alpha,
+                norm_type=dynamics_norm_type,
+                init_scale=dynamics_init_scale,
                 step_size=dynamics_step_size,
                 use_post_norm=dynamics_use_post_norm,
                 clamp_delta=dynamics_clamp_delta,
@@ -63,7 +73,11 @@ class DenseWorldModel(nn.Module):
             self.encoder = ConvEncoder2D(latent_channels=latent_channels, depth=depth)
             self.dynamics = SpatialLatentDynamics2D(
                 channels=latent_channels,
-                depth=depth,
+                depth=effective_dynamics_depth,
+                kernel_size=dynamics_kernel_size,
+                alpha=dynamics_alpha,
+                norm_type=dynamics_norm_type,
+                init_scale=dynamics_init_scale,
                 step_size=dynamics_step_size,
                 use_post_norm=dynamics_use_post_norm,
                 clamp_delta=dynamics_clamp_delta,

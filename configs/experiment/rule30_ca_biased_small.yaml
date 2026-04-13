@@ -1,0 +1,19 @@
+experiment_name: rule30_ca_biased_small
+dataset_name: rule30_dense
+seed: 17
+data: configs/data/rule30.yaml
+model: configs/model/dense_latent_1d_ca_biased_small.yaml
+losses:
+  closure_weight: 0.0
+  latent_cycle_weight: 0.0
+  latent_step_weight: 0.0
+  latent_rollout_weight: 2.0
+train:
+  train:
+    batch_size: 64
+    epochs: 10
+    lr: 0.001
+    sequence_window: 18
+    rollout_horizon: 16
+    grad_clip: 0.5
+    early_stopping_patience: 6

@@ -1,17 +1,17 @@
 model:
   name: dense_world_model
   latent_type: spatial
-  latent_channels: 32
-  latent_dim: 64
-  depth: 3
-  dynamics_depth: 3
+  latent_channels: 24
+  latent_dim: 48
+  depth: 2
+  dynamics_depth: 2
   dynamics_kernel_size: 3
-  dynamics_alpha: 0.25
+  dynamics_alpha: 0.5
   dynamics_norm_type: layer
-  dynamics_init_scale: 0.25
-  dynamics_step_size: 0.25
+  dynamics_init_scale: 0.1
+  dynamics_step_size: 0.5
   dynamics_use_post_norm: true
-  dynamics_clamp_delta: 1.0
+  dynamics_clamp_delta: 0.5
 losses:
   recon_weight: 0.2
   rollout_weight: 1.0

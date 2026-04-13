@@ -30,6 +30,11 @@ def latent_regularization(latent: torch.Tensor, weight: float) -> torch.Tensor:
     return weight * latent.pow(2).mean()
 
 
+def mild_latent_discretization_loss(latent: torch.Tensor, target_scale: float = 1.0) -> torch.Tensor:
+    target = float(target_scale)
+    return (latent.abs() - target).pow(2).mean()
+
+
 def slot_usage_penalty(attention: torch.Tensor, weight: float) -> torch.Tensor:
     if attention is None or weight <= 0.0:
         return torch.zeros((), device=attention.device if attention is not None else "cpu")
@@ -133,16 +138,29 @@ def compute_training_loss(
             metrics["loss_closure"] = float(rollout_closure.item())
             metrics["loss_total"] = float(loss.item())
         latent_rollout_weight = float(loss_cfg.get("latent_rollout_weight", loss_cfg.get("rollout_weight", 1.0)))
+        latent_discretization_weight = float(loss_cfg.get("latent_discretization_weight", 0.0))
+        latent_discretization_target = float(loss_cfg.get("latent_discretization_target", 1.0))
         rollout_loss = torch.zeros((), device=device)
         latent_cycle_loss = torch.zeros((), device=device)
         latent_step_penalty = torch.zeros((), device=device)
+        latent_discretization_loss = torch.zeros((), device=device)
         final_hamming = torch.zeros((), device=device)
+        if latent_discretization_weight > 0.0:
+            latent_discretization_loss = latent_discretization_loss + mild_latent_discretization_loss(
+                outputs.latent,
+                target_scale=latent_discretization_target,
+            )
         for t, step in enumerate(latent_steps):
             rollout_loss = rollout_loss + weights[t] * reconstruction_bce(step.logits, targets[:, t])
             reencoded = model.encode(torch.sigmoid(model.decode(step.latent)))
             latent_cycle_loss = latent_cycle_loss + weights[t] * F.mse_loss(step.latent, reencoded)
             step_delta = step.latent - step.prev_latent
             latent_step_penalty = latent_step_penalty + weights[t] * step_delta.pow(2).mean()
+            if latent_discretization_weight > 0.0:
+                latent_discretization_loss = latent_discretization_loss + weights[t] * mild_latent_discretization_loss(
+                    step.latent,
+                    target_scale=latent_discretization_target,
+                )
             final_hamming = hamming_distance(probs_to_binary(step.state), targets[:, t]).mean()
             metrics[f"latent_rollout_hamming_h{t + 1}"] = float(final_hamming.item())
         if rollout_horizon > 0:
@@ -157,6 +175,9 @@ def compute_training_loss(
         if latent_step_weight > 0.0 and rollout_horizon > 0:
             loss = loss + latent_step_weight * latent_step_penalty
             metrics["loss_latent_step"] = float(latent_step_penalty.item())
+        if latent_discretization_weight > 0.0:
+            loss = loss + latent_discretization_weight * latent_discretization_loss
+            metrics["loss_latent_discretization"] = float(latent_discretization_loss.item())
         if rollout_horizon > 0:
             metrics["latent_step_norm"] = float(latent_step_penalty.sqrt().item())
         metrics["loss_total"] = float(loss.item())

@@ -6,12 +6,12 @@ model:
   depth: 3
   dynamics_depth: 3
   dynamics_kernel_size: 3
-  dynamics_alpha: 0.25
+  dynamics_alpha: 0.2
   dynamics_norm_type: layer
-  dynamics_init_scale: 0.25
-  dynamics_step_size: 0.25
+  dynamics_init_scale: 0.15
+  dynamics_step_size: 0.2
   dynamics_use_post_norm: true
-  dynamics_clamp_delta: 1.0
+  dynamics_clamp_delta: 0.4
 losses:
   recon_weight: 0.2
   rollout_weight: 1.0
