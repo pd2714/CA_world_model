@@ -1,0 +1,9 @@
+model:
+  name: object_world_model
+  num_slots: 6
+  slot_dim: 32
+  feature_channels: 32
+losses:
+  recon_weight: 0.2
+  observable_weight: 0.5
+  slot_entropy_weight: 1.0e-3

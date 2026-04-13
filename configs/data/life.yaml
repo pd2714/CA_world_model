@@ -1,0 +1,21 @@
+ca:
+  type: life_like_2d
+  dimension: 2d
+  rule_string: B3/S23
+  size: [32, 32]
+dataset:
+  trajectory_length: 32
+  initial_condition:
+    kind: bernoulli
+    size: [32, 32]
+    p: 0.18
+  splits:
+    train:
+      num_samples: 96
+    val:
+      num_samples: 24
+    test:
+      num_samples: 24
+  ood:
+    test:
+      p: 0.12

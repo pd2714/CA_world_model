@@ -1,0 +1,5 @@
+experiment_name: rule54_pixel
+seed: 29
+data: configs/data/rule54.yaml
+model: configs/model/pixel_predictor_1d.yaml
+train: configs/train/default_1d.yaml

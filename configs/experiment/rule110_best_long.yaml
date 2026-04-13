@@ -1,0 +1,30 @@
+experiment_name: rule110_best_long
+dataset_name: rule110_dense
+seed: 13
+data: configs/data/rule110.yaml
+model: configs/model/dense_latent_1d.yaml
+losses:
+  closure_weight: 0.05
+  latent_cycle_weight: 0.1
+  latent_step_weight: 1.0e-3
+  latent_rollout_weight: 2.0
+train:
+  train:
+    batch_size: 128
+    epochs: 20
+    lr: 0.001
+    sequence_window: 18
+    rollout_horizon: 2
+    rollout_horizon_schedule:
+      - start_epoch: 1
+        value: 2
+      - start_epoch: 5
+        value: 4
+      - start_epoch: 9
+        value: 8
+      - start_epoch: 13
+        value: 12
+      - start_epoch: 17
+        value: 16
+    grad_clip: 0.5
+    early_stopping_patience: 8

@@ -1,0 +1,5 @@
+experiment_name: life_dense
+seed: 23
+data: configs/data/life.yaml
+model: configs/model/dense_latent_2d.yaml
+train: configs/train/default_2d.yaml

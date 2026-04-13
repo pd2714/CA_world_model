@@ -1,0 +1,26 @@
+experiment_name: rule184_dense_two_stage
+dataset_name: rule184_dense
+seed: 7
+data: configs/data/rule184.yaml
+model: configs/model/dense_latent_1d.yaml
+losses:
+  closure_weight: 0.0
+  closure_weight_schedule:
+    - start_epoch: 1
+      value: 0.0
+    - start_epoch: 25
+      value: 0.05
+train:
+  train:
+    batch_size: 64
+    epochs: 48
+    lr: 0.001
+    sequence_window: 10
+    rollout_horizon: 4
+    rollout_horizon_schedule:
+      - start_epoch: 1
+        value: 4
+      - start_epoch: 25
+        value: 8
+    grad_clip: 1.0
+    early_stopping_patience: 12

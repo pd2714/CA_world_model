@@ -1,0 +1,19 @@
+experiment_name: rule184_dense_mixedp
+dataset_name: rule184_dense_mixedp
+seed: 7
+data: configs/data/rule184.yaml
+model: configs/model/dense_latent_1d.yaml
+dataset:
+  initial_condition:
+    p_list: [0.2, 0.35, 0.5, 0.65, 0.8]
+losses:
+  closure_weight: 0.05
+train:
+  train:
+    batch_size: 64
+    epochs: 48
+    lr: 0.001
+    sequence_window: 10
+    rollout_horizon: 4
+    grad_clip: 1.0
+    early_stopping_patience: 12

@@ -1,0 +1,5 @@
+experiment_name: rule54_dense
+seed: 11
+data: configs/data/rule54.yaml
+model: configs/model/dense_latent_1d.yaml
+train: configs/train/default_1d.yaml

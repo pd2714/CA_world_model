@@ -1,0 +1,14 @@
+experiment_name: rule54_dense_longcheck
+dataset_name: rule54_dense
+seed: 11
+data: configs/data/rule54.yaml
+model: configs/model/dense_latent_1d.yaml
+train:
+  train:
+    batch_size: 256
+    epochs: 12
+    lr: 0.001
+    sequence_window: 6
+    rollout_horizon: 4
+    grad_clip: 1.0
+    early_stopping_patience: 4

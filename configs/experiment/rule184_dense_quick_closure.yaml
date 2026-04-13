@@ -1,0 +1,15 @@
+experiment_name: rule184_dense
+seed: 7
+data: configs/data/rule184.yaml
+model: configs/model/dense_latent_1d.yaml
+losses:
+  closure_weight: 0.05
+train:
+  train:
+    batch_size: 128
+    epochs: 2
+    lr: 0.001
+    sequence_window: 6
+    rollout_horizon: 4
+    grad_clip: 1.0
+    early_stopping_patience: 4

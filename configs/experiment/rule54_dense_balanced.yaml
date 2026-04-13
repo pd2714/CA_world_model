@@ -1,0 +1,29 @@
+experiment_name: rule54_dense_balanced
+dataset_name: rule54_dense
+seed: 11
+data: configs/data/rule54.yaml
+model: configs/model/dense_latent_1d.yaml
+losses:
+  closure_weight: 0.02
+  latent_cycle_weight: 0.02
+  latent_step_weight: 0.0
+  latent_rollout_weight: 1.5
+train:
+  train:
+    batch_size: 128
+    epochs: 16
+    lr: 0.001
+    sequence_window: 12
+    rollout_horizon: 2
+    rollout_horizon_schedule:
+      - start_epoch: 1
+        value: 2
+      - start_epoch: 5
+        value: 4
+      - start_epoch: 9
+        value: 8
+      - start_epoch: 13
+        value: 12
+    grad_clip: 0.5
+    early_stopping_patience: 6
+

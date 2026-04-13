@@ -1,0 +1,28 @@
+experiment_name: rule30_tuned_b
+dataset_name: rule30_dense
+seed: 17
+data: configs/data/rule30.yaml
+model:
+  model:
+    name: dense_world_model
+    latent_type: spatial
+    latent_channels: 48
+    latent_dim: 64
+    depth: 3
+    dynamics_step_size: 0.5
+    dynamics_use_post_norm: false
+    dynamics_clamp_delta: 0.0
+losses:
+  closure_weight: 0.0
+  latent_cycle_weight: 0.0
+  latent_step_weight: 1.0e-3
+  latent_rollout_weight: 2.0
+train:
+  train:
+    batch_size: 64
+    epochs: 10
+    lr: 0.001
+    sequence_window: 18
+    rollout_horizon: 16
+    grad_clip: 0.5
+    early_stopping_patience: 6
