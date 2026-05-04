@@ -1,0 +1,18 @@
+{
+  "cluster_method": "kmeans",
+  "feature_radius": 0,
+  "transition_radius": 1,
+  "num_symbols": 2,
+  "symbol_entropy_bits": 0.931784154927011,
+  "symbol_entropy_normalized": 0.931784154927011,
+  "prediction_accuracy": 0.9996530633223685,
+  "baseline_accuracy": 0.6512451171875,
+  "transition_determinism": 0.9995872096011513,
+  "transition_entropy_bits": 0.004181286262660909,
+  "transition_entropy_normalized": 0.004181286262660909,
+  "novel_context_frac": 0.0,
+  "num_contexts_train": 8,
+  "target_entropy_bits": 0.9319924485532932,
+  "target_entropy_normalized": 0.9319924485532932,
+  "is_minimal_useful": true
+}

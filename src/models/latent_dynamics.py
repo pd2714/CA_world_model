@@ -153,6 +153,43 @@ class SpatialLatentDynamics2D(nn.Module):
         return z + self.alpha * delta
 
 
+class BottleneckMLPDynamics1D(nn.Module):
+    """Residual MLP transition over a flattened [B, C, S] bottleneck."""
+
+    def __init__(
+        self,
+        latent_channels: int = 1,
+        latent_length: int = 8,
+        hidden_dim: int = 128,
+        depth: int = 2,
+        step_size: float = 1.0,
+        use_post_norm: bool = False,
+        clamp_delta: float = 0.0,
+    ) -> None:
+        super().__init__()
+        self.latent_channels = int(latent_channels)
+        self.latent_length = int(latent_length)
+        latent_dim = self.latent_channels * self.latent_length
+        layers: list[nn.Module] = []
+        in_dim = latent_dim
+        for _ in range(max(1, int(depth))):
+            layers.extend([nn.Linear(in_dim, hidden_dim), nn.GELU()])
+            in_dim = hidden_dim
+        layers.append(nn.Linear(in_dim, latent_dim))
+        self.net = nn.Sequential(*layers)
+        self.step_size = float(step_size)
+        self.post_norm = nn.LayerNorm(latent_dim) if use_post_norm else nn.Identity()
+        self.clamp_delta = float(clamp_delta)
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        flat = z.flatten(start_dim=1)
+        delta = self.net(flat)
+        if self.clamp_delta > 0.0:
+            delta = torch.clamp(delta, min=-self.clamp_delta, max=self.clamp_delta)
+        next_flat = self.post_norm(flat + self.step_size * delta)
+        return next_flat.view(z.shape[0], self.latent_channels, self.latent_length)
+
+
 class VectorLatentDynamics(nn.Module):
     def __init__(
         self,

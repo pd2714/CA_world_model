@@ -1,0 +1,16 @@
+experiment_name: rule184_curriculum_stage2
+dataset_name: rule184_mixedp_long
+seed: 7
+data: configs/data/rule184_mixedp_long.yaml
+model: configs/model/dense_latent_1d_stable.yaml
+train: configs/train/rule184_curriculum_stage2.yaml
+losses:
+  recon_weight: 0.2
+  rollout_weight: 1.0
+  latent_rollout_weight: 2.5
+  rollout_gamma: 0.98
+  observable_weight: 0.5
+  latent_l2_weight: 1.0e-4
+  latent_cycle_weight: 0.0
+  latent_step_weight: 1.0e-3
+  closure_weight: 0.02

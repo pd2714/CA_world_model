@@ -1,0 +1,47 @@
+{
+  "status": "ok",
+  "symbolic_best": {
+    "cluster_method": "kmeans",
+    "feature_radius": 0,
+    "transition_radius": 1,
+    "num_symbols": 2,
+    "symbol_entropy_bits": 0.9310677274039911,
+    "symbol_entropy_normalized": 0.9310677274039911,
+    "prediction_accuracy": 1.0,
+    "baseline_accuracy": 0.6504163240131579,
+    "transition_determinism": 1.0,
+    "transition_entropy_bits": 0.0,
+    "transition_entropy_normalized": 0.0,
+    "novel_context_frac": 0.0,
+    "num_contexts_train": 8,
+    "target_entropy_bits": 0.9310677274039911,
+    "target_entropy_normalized": 0.9310677274039911,
+    "is_minimal_useful": true
+  },
+  "conserved_best": {
+    "family": "linear",
+    "conservation_score": 4.18167510360945e-05,
+    "Q_variance": 491.3228454589844,
+    "local_q_variance": 0.9999576807022095,
+    "mean_abs_delta_Q": 0.03148922324180603
+  },
+  "slow_best": {
+    "family": "linear",
+    "slowness_score": 0.004136214032769203,
+    "raw_variance": 412.1521301269531,
+    "mean_abs_delta": 0.04860831797122955
+  },
+  "continuity_best": {
+    "family": "linear",
+    "radius": 2,
+    "continuity_residual_mse": 0.0239794310182333,
+    "rho_variance": 0.999988317489624,
+    "J_variance": 0.9999948143959045,
+    "mean_abs_residual": 0.11186374723911285
+  },
+  "num_symbolic_candidates": 54,
+  "num_conservation_fits": 1,
+  "num_slow_fits": 1,
+  "num_continuity_fits": 3,
+  "num_validation_rows": 30
+}

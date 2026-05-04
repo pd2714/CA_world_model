@@ -101,21 +101,52 @@ def compute_training_loss(
 
     if config["model"]["name"] == "dense_world_model":
         outputs = model(x0)
-        loss = reconstruction_bce(outputs.reconstruction_logits, x0) * float(loss_cfg.get("recon_weight", 0.2))
+        recon_weight = resolve_scheduled_value(
+            float(loss_cfg.get("recon_weight", 0.2)),
+            loss_cfg.get("recon_weight_schedule"),
+            epoch,
+        )
+        pred_weight = resolve_scheduled_value(
+            float(loss_cfg.get("pred_weight", 1.0)),
+            loss_cfg.get("pred_weight_schedule"),
+            epoch,
+        )
+        observable_weight = resolve_scheduled_value(
+            float(loss_cfg.get("observable_weight", 0.0)),
+            loss_cfg.get("observable_weight_schedule"),
+            epoch,
+        )
+        latent_l2_weight = resolve_scheduled_value(
+            float(loss_cfg.get("latent_l2_weight", 0.0)),
+            loss_cfg.get("latent_l2_weight_schedule"),
+            epoch,
+        )
+        loss = reconstruction_bce(outputs.reconstruction_logits, x0) * recon_weight
         pred_loss = reconstruction_bce(outputs.prediction_logits, targets[:, 0])
-        loss = loss + pred_loss
+        loss = loss + pred_weight * pred_loss
         closure_weight = resolve_scheduled_value(
             float(loss_cfg.get("closure_weight", 0.0)),
             loss_cfg.get("closure_weight_schedule"),
             epoch,
         )
         obs_loss = observable_loss(outputs.prediction_logits, targets[:, 0], use_domain_walls=x0.ndim == 3)
-        loss = loss + float(loss_cfg.get("observable_weight", 0.0)) * obs_loss
-        loss = loss + latent_regularization(outputs.latent, float(loss_cfg.get("latent_l2_weight", 0.0)))
+        loss = loss + observable_weight * obs_loss
+        loss = loss + latent_regularization(outputs.latent, latent_l2_weight)
         metrics = {
             "loss_total": float(loss.item()),
+            "loss_recon": float(reconstruction_bce(outputs.reconstruction_logits, x0).item()),
             "loss_pred": float(pred_loss.item()),
             "loss_obs": float(obs_loss.item()),
+            "weight_recon": float(recon_weight),
+            "weight_pred": float(pred_weight),
+            "weight_rollout": float(
+                resolve_scheduled_value(
+                    float(loss_cfg.get("latent_rollout_weight", loss_cfg.get("rollout_weight", 1.0))),
+                    loss_cfg.get("latent_rollout_weight_schedule", loss_cfg.get("rollout_weight_schedule")),
+                    epoch,
+                )
+            ),
+            "weight_closure": float(closure_weight),
         }
         latent_steps = latent_rollout_steps(model, x0, horizon=rollout_horizon, threshold=False)
         teacher_forced_latent_error = F.mse_loss(outputs.next_latent, model.encode(targets[:, 0]).detach())
@@ -137,8 +168,16 @@ def compute_training_loss(
             loss = loss + closure_weight * rollout_closure
             metrics["loss_closure"] = float(rollout_closure.item())
             metrics["loss_total"] = float(loss.item())
-        latent_rollout_weight = float(loss_cfg.get("latent_rollout_weight", loss_cfg.get("rollout_weight", 1.0)))
-        latent_discretization_weight = float(loss_cfg.get("latent_discretization_weight", 0.0))
+        latent_rollout_weight = resolve_scheduled_value(
+            float(loss_cfg.get("latent_rollout_weight", loss_cfg.get("rollout_weight", 1.0))),
+            loss_cfg.get("latent_rollout_weight_schedule", loss_cfg.get("rollout_weight_schedule")),
+            epoch,
+        )
+        latent_discretization_weight = resolve_scheduled_value(
+            float(loss_cfg.get("latent_discretization_weight", 0.0)),
+            loss_cfg.get("latent_discretization_weight_schedule"),
+            epoch,
+        )
         latent_discretization_target = float(loss_cfg.get("latent_discretization_target", 1.0))
         rollout_loss = torch.zeros((), device=device)
         latent_cycle_loss = torch.zeros((), device=device)
@@ -167,11 +206,19 @@ def compute_training_loss(
             loss = loss + latent_rollout_weight * rollout_loss
             metrics["loss_rollout"] = float(rollout_loss.item())
             metrics["pure_latent_rollout_hamming"] = float(final_hamming.item())
-        latent_cycle_weight = float(loss_cfg.get("latent_cycle_weight", 0.0))
+        latent_cycle_weight = resolve_scheduled_value(
+            float(loss_cfg.get("latent_cycle_weight", 0.0)),
+            loss_cfg.get("latent_cycle_weight_schedule"),
+            epoch,
+        )
         if latent_cycle_weight > 0.0 and rollout_horizon > 0:
             loss = loss + latent_cycle_weight * latent_cycle_loss
             metrics["loss_latent_cycle"] = float(latent_cycle_loss.item())
-        latent_step_weight = float(loss_cfg.get("latent_step_weight", 0.0))
+        latent_step_weight = resolve_scheduled_value(
+            float(loss_cfg.get("latent_step_weight", 0.0)),
+            loss_cfg.get("latent_step_weight_schedule"),
+            epoch,
+        )
         if latent_step_weight > 0.0 and rollout_horizon > 0:
             loss = loss + latent_step_weight * latent_step_penalty
             metrics["loss_latent_step"] = float(latent_step_penalty.item())

@@ -1,0 +1,28 @@
+model:
+  name: dense_world_model
+  latent_type: bottleneck
+  latent_channels: 1
+  latent_dim: 8
+  latent_length: 8
+  depth: 3
+  bottleneck_hidden_channels: 32
+  bottleneck_hidden_dim: 256
+  bottleneck_position_dim: 32
+  bottleneck_dynamics_hidden_dim: 128
+  dynamics_depth: 2
+  dynamics_step_size: 0.25
+  dynamics_use_post_norm: false
+  dynamics_clamp_delta: 1.0
+losses:
+  recon_weight: 1.0
+  pred_weight: 1.0
+  rollout_weight: 1.0
+  latent_rollout_weight: 1.0
+  rollout_gamma: 0.95
+  observable_weight: 0.5
+  latent_l2_weight: 1.0e-4
+  closure_weight: 0.0
+  latent_cycle_weight: 0.0
+  latent_step_weight: 1.0e-3
+  latent_discretization_weight: 0.0
+  latent_discretization_target: 1.0

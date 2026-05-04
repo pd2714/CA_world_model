@@ -1,0 +1,2 @@
+run_name,rule,model_name,status,output_dir,checkpoint
+rule184_latent_rollout_only_20260410_183557,184,dense_world_model,ok,/Users/peizeding/Desktop/Projects/CA_world_model/analysis/outputs/rule184/dense_world_model/latent_discovery/rule184_latent_rollout_only_20260410_183557,/Users/peizeding/Desktop/Projects/CA_world_model/outputs/rule184_latent_rollout_only_20260410_183557/best.ckpt

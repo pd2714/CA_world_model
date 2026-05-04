@@ -1,0 +1,7 @@
+target,task,accuracy,mse,r2,train_n,test_n
+center_cell,classification,1.0,,,9600,2400
+left_neighbor,classification,1.0,,,9600,2400
+right_neighbor,classification,1.0,,,9600,2400
+next_cell,classification,1.0,,,9600,2400
+neighborhood_class,classification,1.0,,,9600,2400
+local_density,regression,,1.913460518407919e-05,0.9998053006433558,9600,2400

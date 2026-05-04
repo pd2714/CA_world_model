@@ -1,0 +1,9 @@
+train:
+  batch_size: 128
+  epochs: 4
+  lr: 0.0003
+  sequence_window: 28
+  rollout_horizon: 24
+  grad_clip: 1.0
+  early_stopping_patience: 3
+  num_workers: 0

@@ -14,6 +14,7 @@ from src.ca.elementary_1d import ElementaryCA
 from src.ca.life_like_2d import LifeLikeCA
 from src.ca.trajectory import rollout_batch, sample_initial_state
 from src.models.dense_world_model import DenseWorldModel
+from src.models.legacy_dense_world_model import LegacyDenseWorldModel
 from src.models.object_world_model import ObjectWorldModel
 from src.models.pixel_predictor import PixelPredictor
 from src.utils.runtime import dataloader_num_workers
@@ -68,17 +69,27 @@ def build_model(config: dict[str, Any]) -> torch.nn.Module:
             kernel_size=int(model_cfg.get("kernel_size", 3)),
         )
     if name == "dense_world_model":
+        if bool(model_cfg.get("legacy_rule184_compat", False)):
+            return LegacyDenseWorldModel(
+                channels=int(model_cfg.get("latent_channels", 32)),
+                depth=int(model_cfg.get("depth", 3)),
+                step_size=float(model_cfg.get("dynamics_step_size", 1.0)),
+                use_post_norm=bool(model_cfg.get("dynamics_use_post_norm", False)),
+                clamp_delta=float(model_cfg.get("dynamics_clamp_delta", 0.0)),
+            )
         dynamics_norm_type = str(
             model_cfg.get(
                 "dynamics_norm_type",
                 "layer" if bool(model_cfg.get("dynamics_use_post_norm", False)) else "none",
             )
         )
+        default_latent_type = "bottleneck" if config["ca"]["dimension"] == "1d" else "spatial"
         return DenseWorldModel(
             dimension=config["ca"]["dimension"],
-            latent_type=str(model_cfg.get("latent_type", "spatial")),
-            latent_channels=int(model_cfg.get("latent_channels", 32)),
-            latent_dim=int(model_cfg.get("latent_dim", 64)),
+            latent_type=str(model_cfg.get("latent_type", default_latent_type)),
+            latent_channels=int(model_cfg.get("latent_channels", 1)),
+            latent_dim=int(model_cfg.get("latent_dim", 8)),
+            latent_length=int(model_cfg.get("latent_length", 8)),
             input_size=config["ca"]["size"],
             depth=int(model_cfg.get("depth", 3)),
             dynamics_depth=int(model_cfg.get("dynamics_depth", model_cfg.get("depth", 3))),
@@ -89,6 +100,10 @@ def build_model(config: dict[str, Any]) -> torch.nn.Module:
             dynamics_step_size=float(model_cfg.get("dynamics_step_size", 1.0)),
             dynamics_use_post_norm=bool(model_cfg.get("dynamics_use_post_norm", False)),
             dynamics_clamp_delta=float(model_cfg.get("dynamics_clamp_delta", 0.0)),
+            bottleneck_hidden_channels=int(model_cfg.get("bottleneck_hidden_channels", 32)),
+            bottleneck_hidden_dim=int(model_cfg.get("bottleneck_hidden_dim", 256)),
+            bottleneck_position_dim=int(model_cfg.get("bottleneck_position_dim", 32)),
+            bottleneck_dynamics_hidden_dim=int(model_cfg.get("bottleneck_dynamics_hidden_dim", 128)),
         )
     if name == "object_world_model":
         if config["ca"]["dimension"] != "1d":

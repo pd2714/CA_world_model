@@ -1,0 +1,21 @@
+ca:
+  type: elementary_1d
+  dimension: 1d
+  rule: 184
+  size: 128
+dataset:
+  trajectory_length: 128
+  initial_condition:
+    kind: bernoulli
+    size: 128
+    p_list: [0.35, 0.5, 0.65]
+  splits:
+    train:
+      num_samples: 512
+    val:
+      num_samples: 128
+    test:
+      num_samples: 128
+  ood:
+    test:
+      p: 0.35

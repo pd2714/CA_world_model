@@ -1,0 +1,2 @@
+q_fit_mse,q_fit_r2,true_count_drift_mean_abs,pred_count_drift_mean_abs,q_true_drift_mean_abs,q_rollout_drift_mean_abs,pred_count_mae
+0.0001311289614224982,0.9999956110160887,0.0,0.29789960384368896,0.02453541619844852,49.55390770759119,0.29789960384368896

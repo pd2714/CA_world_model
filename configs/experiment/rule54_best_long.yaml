@@ -2,7 +2,7 @@ experiment_name: rule54_best_long
 dataset_name: rule54_dense
 seed: 11
 data: configs/data/rule54.yaml
-model: configs/model/dense_latent_1d_stable.yaml
+model: configs/model/dense_latent_1d_ca_light.yaml
 losses:
   closure_weight: 0.0
   latent_cycle_weight: 0.0
@@ -17,4 +17,3 @@ train:
     rollout_horizon: 16
     grad_clip: 0.5
     early_stopping_patience: 6
-
